@@ -9,10 +9,12 @@ import time
 
 
 class AssignmentHelper:
-    def __init__(self):
-        self.prob_df = pd.read_csv('../../data/data.csv', index_col=0)  #.iloc[: 2000, :]
+    def __init__(self, prob_df=None):
+        if prob_df is None:
+            prob_df = pd.read_csv('../../data/data.csv', index_col=0)  #.iloc[: 2000, :]
+        self.prob_df = prob_df
 
-        self.households = [i for i in range(1, self.prob_df.shape[0] + 1)]
+        self.households = list(prob_df.index)  # [i for i in range(1, self.prob_df.shape[0] + 1)]
         self.types = ['ES', 'PSH', 'TH', 'RRH', 'PREV']
 
     def update_constraints(self, fairness_constraint=None, capacity_df=None):
