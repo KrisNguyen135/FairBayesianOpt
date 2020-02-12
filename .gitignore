@@ -4,3 +4,4 @@ GPflowOpt/
 __pycache__/
 Spearmint/
 pagmo/
+scikit_optimize_quan/
