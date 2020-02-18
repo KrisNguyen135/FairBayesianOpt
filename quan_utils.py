@@ -9,7 +9,9 @@ import time
 
 
 class AssignmentHelper:
-    def __init__(self, prob_df=None):
+    def __init__(self, name=f'{int(time.time())}', prob_df=None):
+        self.name = name
+
         if prob_df is None:
             prob_df = pd.read_csv('../../data/data.csv', index_col=0)  #.iloc[: 2000, :]
         self.prob_df = prob_df
@@ -17,7 +19,8 @@ class AssignmentHelper:
         self.households = list(prob_df.index)  # [i for i in range(1, self.prob_df.shape[0] + 1)]
         self.types = ['ES', 'PSH', 'TH', 'RRH', 'PREV']
 
-    def update_constraints(self, fairness_constraint=None, capacity_df=None):
+    def update_constraints(self, fairness_constraint=None,
+                           fairness_best_constraint=None, capacity_df=None):
         # Variable containing individual assignments
         self.x = pulp.LpVariable.dicts(
             'assignment',
@@ -56,11 +59,23 @@ class AssignmentHelper:
                     self.types[self.prob_df.loc[household, 'Real'] - 1]
                 ] + fairness_constraint
 
+        # Constraint on the distance from individual best
+        if fairness_best_constraint is not None:
+            for household in self.households:
+                self.prob += pulp.lpSum(
+                    self.x[(household, type_)] * self.prob_df.loc[household, type_]
+                    for type_ in self.types
+                ) <= self.prob_df.loc[household, self.types].min() + fairness_best_constraint
+
     def ip_solve(self, solver=None):
         if solver is None:
             self.prob.solve(solver=pulp.solvers.GUROBI_CMD())
         else:
             self.prob.solve(solver=solver)
+
+        if pulp.LpStatus[self.prob.status] != 'Optimal':
+            # print(f'{self.name}: solution not optimal')
+            return False
 
         sol_df = pd.DataFrame(columns=self.types)
         for household in self.households:
@@ -116,7 +131,9 @@ class AssignmentHelper:
             ]
 
         # Difference between assigned and real probabilities
-        prob_compare_df['Diff'] = prob_compare_df[name] - prob_compare_df['Real']
+        prob_compare_df['Input_to_real'] = prob_compare_df[name] - prob_compare_df['Real']
+        prob_compare_df['Input_to_best'] = prob_compare_df[name] - self.prob_df[self.types].min(axis=1)
+        prob_compare_df['Real_to_best'] = prob_compare_df['Input_to_best'] - prob_compare_df['Input_to_real']
         # if include_zero:
         #     plt.hist(prob_compare_df['Diff'], bins=30)
         # else:

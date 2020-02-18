@@ -51,19 +51,19 @@ def custom_gp_cook_estimator(space=None, **kwargs):
     return base_estimator
 
 
-def custom_gaussian_acquisition(X, model, acq_func, y_opt=None, return_grad=False,
-                                acq_func_kwargs=None):
-    '''
-    Wrapper so that the output of this function can be directly passed to a
-    minimizer.
-    '''
-    # Check inputs
-    X = np.asarray(X)
-    if X.ndim != 2:
-        raise ValueError(f'X is {X.ndim}-dimensional, must be 2-dimensional')
+# def custom_gaussian_acquisition(X, model, acq_func, y_opt=None, return_grad=False,
+#                                 acq_func_kwargs=None):
+#     '''
+#     Wrapper so that the output of this function can be directly passed to a
+#     minimizer.
+#     '''
+#     # Check inputs
+#     X = np.asarray(X)
+#     if X.ndim != 2:
+#         raise ValueError(f'X is {X.ndim}-dimensional, must be 2-dimensional')
+#
+#     if acq_func_kwargs is None:
 
-    if acq_func_kwargs is None:
-        
 
 
 class CustomOptimizer:
@@ -101,7 +101,7 @@ class CustomOptimizer:
 
         ### Configure optimizer
         # Decide optimizer based on gradient information
-        if acq_optimizer == 'auto' \
+        if acq_optimizer != 'sampling' \
                 and skopt.utils.has_gradients(self.base_estimator_):
             acq_optimizer = 'lbfgs'
         else:
@@ -222,7 +222,7 @@ class CustomOptimizer:
                 next_x = X[np.argmin(values)]
 
             elif self.acq_optimizer == 'lbfgs':
-                print('Using L-BFGS')
+                # print('Using L-BFGS')
                 x0 = X[np.argsort(values)[: self.n_restarts_optimizer]]
 
                 with warnings.catch_warnings():
@@ -239,7 +239,7 @@ class CustomOptimizer:
                     )
 
                 cand_xs = np.array([r[0] for r in results])
-                cand_acqs = np.arrays([r[1] for r in results])
+                cand_acqs = np.array([r[1] for r in results])
                 next_x = cand_xs[np.argmin(cand_acqs)]
 
                 # lbfgs should be able to handle this but in case there are
