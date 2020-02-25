@@ -4,82 +4,161 @@ import numpy as np
 
 
 class BottleneckAssignmentHelper:
-    def __init__(self, prob_df=None, types=None):
-        # Statistics from the original data set
-        if prob_df is None:
-            prob_df = pd.read_csv('../../data/data.csv', index_col=0)
-        self.households = list(prob_df.index)
-        if types is None:
-            self.types = ['ES', 'PSH', 'TH', 'RRH', 'PREV']
+    def __init__(self, prob_increases, capacities, init_c_star=None):
+        # `prob_increases` should be a n x m matrix
+        # `capacities` should be an array with length m
+        self.cost_matrix = prob_increases
+        self.capacities = capacities
+
+        if init_c_star is None:
+            self.c_star = np.concatenate([
+                self.cost_matrix.min(axis=0),
+                self.cost_matrix.min(axis=1)
+            ]).max()
         else:
-            self.types = types
-        self.capacity_df = prob_df['Real'].value_counts()
-
-        # Increase from the individual best to each service
-        increase_from_best_df = prob_df.copy()
-        increase_from_best_df['Best'] = increase_from_best_df[self.types].min(axis=1)
-        for type_ in self.types:
-            increase_from_best_df[type_] = prob_df[type_] - prob_df['Best']
-
-        self.increase_from_best_df = increase_from_best_df[self.types]
-
-        self.c_star = np.concatenate([
-            increase_from_best_df.min(axis=0),
-            increase_from_best_df.min(axis=1)
-        ]).max()
-        self.c_star_candidates = np.unqiue(self.increase_from_best_df)
-        self.c_star_candidates = self.c_star_candidates[self.c_star_candidates > c_star]
+            self.c_star = init_c_star
+        self.c_star_candidates = np.unique(self.cost_matrix)
+        self.c_star_candidates = self.c_star_candidates[
+            self.c_star_candidates > self.c_star]
 
     def solve(self, multiplier=10):
-        replacement = self.increase_from_best_df.max().max() * multiplier
+        replacement = self.cost_matrix.max().max() * multiplier
+        count = 0
 
         while len(self.c_star_candidates) > 0:
-            print(f'c*: {c_star:.7f}')
+            print(f'c*: {self.c_star:.7f}, count: {count}')
 
-            cost_matrix = self.increase_from_best_df.to_numpy()
-            valid_matrix = np.ones(cost_matrix.shape)
+            temp_matrix = self.cost_matrix.copy()
+            valid_matrix = np.ones(temp_matrix.shape)
 
-            cost_matrix[cost_matrix > self.c_star] = replacement
-            valid_matrix[cost_matrix > self.c_star] = 0
+            temp_matrix[temp_matrix > self.c_star] = replacement
+            valid_matrix[temp_matrix > self.c_star] = 0
 
             ### Use Gurobi to find solution
             self.x = pulp.LpVariable.dicts(
                 'assignment',
-                [(household, type_)
-                 for h_id, household in enumerate(self.households)
-                 for t_id, type_ in enumerate(self.types)
-                 if valid_matrix[h_id, t_id]],
-                cat='Biary'
+                [(row, col)
+                 for row in range(temp_matrix.shape[0])
+                 for col in range(temp_matrix.shape[1])
+                 if valid_matrix[row, col]],
+                cat='Binary'
             )
 
             self.prob = pulp.LpProblem('bottleneck', pulp.LpMinimize)
             self.prob += pulp.lpSum(
-                self.x[key] * self.increase_from_best_df.loc[key[0], key[1]]
+                self.x[key] * self.cost_matrix[key[0], key[1]]
                 for key in self.x
             )
 
-            for h_id, household in enumerate(self.households):
+            for row in range(temp_matrix.shape[0]):
                 self.prob += pulp.lpSum(
-                    self.x[(household, type_)]
-                    for t_id, typue_ in enumerate(self.types)
-                    if valid_matrix[h_id, t_id]
+                    self.x[(row, col)]
+                    for col in range(temp_matrix.shape[1])
+                    if valid_matrix[row, col]
                 ) == 1
 
-            for t_id, type_ in enumerate(self.types):
+            for col in range(temp_matrix.shape[1]):
                 self.prob += pulp.lpSum(
-                    self.x[(household, type_)]
-                    for h_id, household in enumerate(self.households)
-                    if valid_matrix[h_id, t_id]
-                ) <= self.capacity_df.loc[t_id + 1]
+                    self.x[(row, col)]
+                    for row in range(temp_matrix.shape[0])
+                    if valid_matrix[row, col]
+                ) <= self.capacities[col]
 
             self.prob.solve(solver=pulp.solvers.GUROBI_CMD())
             if pulp.LpStatus[self.prob.status] == 'Optimal':
-                assignment_matrix = np.zeros(cost_matrix.shape)
-                for h_id, household in self.households:
-                    for t_id, type_ in self.types:
-                        if valid_matrix[h_id, t_id]:
-                            assignment_matrix[h_id, t_id] = self.x[(household, type_)]
+                assignment_matrix = np.zeros(temp_matrix.shape)
+                for key in self.x:
+                    if valid_matrix[key[0], key[1]]:
+                        assignment_matrix[key[0], key[1]] = self.x[key].varValue
 
                 return assignment_matrix
 
+            self.c_star = self.c_star_candidates[0]
+            self.c_star_candidates = self.c_star_candidates[1:]
+            count += 1
+
         return False
+
+
+class BottleneckAssignmentHelperV2:
+    def __init__(self, prob_increases, capacities):
+        # `prob_increases` should be a n x m matrix
+        # `capacities` should be an array with length m
+        self.cost_matrix = prob_increases
+        self.capacities = capacities
+
+        self.lower_c_star = np.concatenate([
+            self.cost_matrix.min(axis=0),
+            self.cost_matrix.min(axis=1)
+        ]).max()
+        self.c_star_candidates = np.unique(self.cost_matrix)
+        self.upper_c_star = self.c_star_candidates[-1]
+
+        self.c_star_candidates = self.c_star_candidates[
+            self.c_star_candidates > self.lower_c_star]
+
+    def solve(self, multiplier=10, verbose=False):
+        replacement = self.cost_matrix.max().max() * multiplier
+
+        def is_feasible(c_star):
+            temp_matrix = self.cost_matrix.copy()
+            valid_matrix = np.ones(temp_matrix.shape)
+
+            temp_matrix[temp_matrix > c_star] = replacement
+            valid_matrix[temp_matrix > c_star] = 0
+
+            # Use Gurobi to find any feasible solution
+            x = pulp.LpVariable.dicts(
+                'assignment',
+                [(row, col)
+                 for row in range(temp_matrix.shape[0])
+                 for col in range(temp_matrix.shape[1])
+                 if valid_matrix[row, col]],
+                 cat='Binary'
+            )
+
+            prob = pulp.LpProblem()
+            prob += pulp.lpSum(
+                x[key] * temp_matrix[key[0], key[1]]
+                for key in x
+            )
+
+            for row in range(temp_matrix.shape[0]):
+                prob += pulp.lpSum(
+                    x[(row, col)]
+                    for col in range(temp_matrix.shape[1])
+                    if valid_matrix[row, col]
+                ) == 1
+
+            for col in range(temp_matrix.shape[1]):
+                prob += pulp.lpSum(
+                    x[(row, col)]
+                    for row in range(temp_matrix.shape[0])
+                    if valid_matrix[row, col]
+                ) <= self.capacities[col]
+
+            prob.solve(solver=pulp.solvers.GUROBI_CMD())
+            if pulp.LpStatus[prob.status] == 'Optimal':
+                return True
+
+            return False
+
+        if is_feasible(self.lower_c_star):
+            return self.lower_c_star
+        if not is_feasible(self.upper_c_star):
+            return False
+
+        while len(self.c_star_candidates) > 2:
+            if verbose:
+                print(f'Searching between {self.lower_c_star} and {self.upper_c_star}')
+
+            mid_c_star_id = len(self.c_star_candidates) // 2
+
+            if is_feasible(self.c_star_candidates[mid_c_star_id]):
+                self.c_star_candidates = self.c_star_candidates[: mid_c_star_id + 1]
+                self.upper_c_star = self.c_star_candidates[-1]
+            else:
+                self.c_star_candidates = self.c_star_candidates[mid_c_star_id:]
+                self.lower_c_star = self.c_star_candidates[0]
+
+        return self.c_star_candidates
