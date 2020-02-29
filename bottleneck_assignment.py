@@ -95,7 +95,7 @@ class BottleneckAssignmentHelperV2:
         self.upper_c_star = self.c_star_candidates[-1]
 
         self.c_star_candidates = self.c_star_candidates[
-            self.c_star_candidates > self.lower_c_star]
+            self.c_star_candidates >= self.lower_c_star]
 
     def solve(self, multiplier=10, verbose=False):
         replacement = self.cost_matrix.max().max() * multiplier
