@@ -9,7 +9,7 @@ import time
 
 
 class AssignmentHelper:
-    def __init__(self, name=f'{int(time.time())}', prob_df=None):
+    def __init__(self, types=None, name=f'{int(time.time())}', prob_df=None):
         self.name = name
 
         if prob_df is None:
@@ -17,7 +17,10 @@ class AssignmentHelper:
         self.prob_df = prob_df
 
         self.households = list(prob_df.index)  # [i for i in range(1, self.prob_df.shape[0] + 1)]
-        self.types = ['ES', 'PSH', 'TH', 'RRH', 'PREV']
+        if types is None:
+            self.types = ['ES', 'PSH', 'TH', 'RRH', 'PREV']
+        else:
+            self.types = types
 
     def update_constraints(self, fairness_constraint=None,
                            fairness_best_constraint=None, capacity_df=None):
