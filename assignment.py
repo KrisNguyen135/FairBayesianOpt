@@ -143,3 +143,79 @@ class AssignmentHelper:
         #     plt.hist(prob_compare_df[prob_compare_df['Diff'] != 0]['Diff'], bins=30)
         # plt.show()
         return prob_compare_df
+
+
+class AssignmentHelperV2:
+    def __init__(self, cost_matrix, capacities):
+        self.cost_matrix = cost_matrix
+        self.capacities = capacities
+        self.n_agents = cost_matrix.shape[0]
+        self.n_intvs = cost_matrix.shape[1]
+
+        # assert self.n_intvs == len(self.capacities)
+
+    def ip_solve(self):
+        # Variables denoting the assignments
+        self.x = pulp.LpVariable.dicts(
+            'assignment',
+            [(agent_id, intv_id)
+             for agent_id in range(self.n_agents)
+             for intv_id in range(self.n_intvs)],
+             cat='Binary'
+        )
+
+        # IP problem
+        self.prob = pulp.LpProblem()
+
+        # Objective function
+        self.prob += pulp.lpSum(
+            self.x[(agent_id, intv_id)] * self.cost_matrix[agent_id, intv_id]
+            for agent_id in range(self.n_agents)
+            for intv_id in range(self.n_intvs)
+        )
+
+        # Assignment constraint
+        for agent_id in range(self.n_agents):
+            self.prob += pulp.lpSum(
+                self.x[(agent_id, intv_id)]
+                for intv_id in range(self.n_intvs)
+            ) == 1
+
+        # Capacity constraint
+        for intv_id in range(self.n_intvs):
+            self.prob += pulp.lpSum(
+                self.x[(agent_id, intv_id)]
+                for agent_id in range(self.n_agents)
+            ) <= self.capacities[intv_id]
+
+        self.prob.solve(solver=pulp.solvers.GUROBI_CMD())
+        if pulp.LpStatus[self.prob.status] != 'Optimal':
+            return False
+
+        # Make the assignment array
+        assignments = []
+        for agent_id in range(self.n_agents):
+            for intv_id in range(self.n_intvs):
+                if self.x[(agent_id, intv_id)].varValue == 1:
+                    assignments.append(intv_id)
+                    break
+
+        return np.array(assignments)
+
+    def get_cost_increases(self, assignments, increase_matrix=None):
+        if increase_matrix is not None:
+            return np.array([
+                increase_matrix[agent_id, assignments[agent_id]]
+                for agent_id in range(self.n_agents)
+            ])
+
+        increases = []
+        for agent_id in range(self.n_agents):
+            lowest_cost = self.cost_matrix[agent_id, :].min()
+
+            increases.append(
+                self.cost_matrix[agent_id, assignments[agent_id]]
+                - lowest_cost
+            )
+
+        return np.array(increases)
