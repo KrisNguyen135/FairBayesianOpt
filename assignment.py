@@ -219,3 +219,9 @@ class AssignmentHelperV2:
             )
 
         return np.array(increases)
+
+    def get_cost(self, assignments):
+        return sum(
+            self.cost_matrix[agent_id, assignments[agent_id]]
+            for agent_id in range(self.n_agents)
+        )
