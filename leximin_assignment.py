@@ -181,8 +181,8 @@ class LeximinAssignmentHelper:
             assignments = []
             for agent_id in range(self.n_agents):
                 for intv_id in range(self.n_intvs):
-                    if x[(agent_id, intv_id)].varValue == 1 \
-                            and valid_matrix[agent_id, intv_id]:
+                    if valid_matrix[agent_id, intv_id] \
+                            and x[(agent_id, intv_id)].varValue == 1:
                         assignments.append(intv_id)
                         break
 
@@ -248,3 +248,33 @@ class LeximinAssignmentHelper:
 
         return self.is_feasible_v3(
             self.c_star_candidates[upper_c_star_id], leximin_counts)
+
+    def get_cost_increases(self, assignments, increase_matrix=None):
+        if increase_matrix is not None:
+            return np.array([
+                increase_matrix[agent_id, assignments[agent_id]]
+                for agent_id in range(self.n_agents)
+            ])
+
+        increases = []
+        for agent_id in range(self.n_agents):
+            lowest_cost = self.cost_matrix[agent_id, :].min()
+
+            increases.append(
+                self.cost_matrix[agent_id, assignments[agent_id]]
+                - lowest_cost
+            )
+
+        return np.array(increases)
+
+    def get_cost(self, assignments, cost_matrix=None):
+        if cost_matrix is None:
+            return sum(
+                self.cost_matrix[agent_id, assignments[agent_id]]
+                for agent_id in range(self.n_agents)
+            )
+
+        return sum(
+            cost_matrix[agent_id, assignments[agent_id]]
+            for agent_id in range(self.n_agents)
+        )

@@ -181,3 +181,33 @@ class BottleneckAssignmentHelperV2:
                 self.lower_c_star = self.c_star_candidates[0]
 
         return self.c_star_candidates, self.is_feasible(self.c_star_candidates[-1])
+
+    def get_cost_increases(self, assignments, increase_matrix=None):
+        if increase_matrix is not None:
+            return np.array([
+                increase_matrix[agent_id, assignments[agent_id]]
+                for agent_id in range(self.n_agents)
+            ])
+
+        increases = []
+        for agent_id in range(self.n_agents):
+            lowest_cost = self.cost_matrix[agent_id, :].min()
+
+            increases.append(
+                self.cost_matrix[agent_id, assignments[agent_id]]
+                - lowest_cost
+            )
+
+        return np.array(increases)
+
+    def get_cost(self, assignments, cost_matrix=None):
+        if cost_matrix is None:
+            return sum(
+                self.cost_matrix[agent_id, assignments[agent_id]]
+                for agent_id in range(self.n_agents)
+            )
+
+        return sum(
+            cost_matrix[agent_id, assignments[agent_id]]
+            for agent_id in range(self.n_agents)
+        )
