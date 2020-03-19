@@ -170,10 +170,11 @@ class LeximinAssignmentHelper:
 
         # Leximin count constraints
         for leximin in leximin_counts:
-            prob += pulp.lpSum(
-                x[(agent_id, intv_id)]
-                for agent_id, intv_id in np.argwhere(self.cost_matrix == leximin)
-            ) <= leximin_counts[leximin]
+            if leximin != c_star:
+                prob += pulp.lpSum(
+                    x[(agent_id, intv_id)]
+                    for agent_id, intv_id in np.argwhere(self.cost_matrix == leximin)
+                ) <= leximin_counts[leximin]
 
         prob.solve(solver=pulp.solvers.GUROBI_CMD())
 
@@ -214,6 +215,7 @@ class LeximinAssignmentHelper:
                     print('Searching between:',)
                     print(lower_c_star_id, self.c_star_candidates[lower_c_star_id])
                     print(upper_c_star_id, self.c_star_candidates[upper_c_star_id])
+                    print('Number of agents assigned:', agent_count)
                     print()
 
                 mid_c_star_id = (lower_c_star_id + upper_c_star_id) // 2
@@ -228,26 +230,71 @@ class LeximinAssignmentHelper:
             # print('Returning leximin id', upper_c_star_id)
             return upper_c_star_id
 
+        def recur_solve_v2(upper_c_star_id):
+            next_c_star_id = upper_c_star_id
+            # print(leximin_counts)
+
+            potential_assignments = self.is_feasible_v3(
+                self.c_star_candidates[next_c_star_id], leximin_counts)
+
+            while potential_assignments is not False and next_c_star_id >= 0:
+                next_c_star_id -= 1
+
+                if verbose:
+                    print('Considering')
+                    print(next_c_star_id, self.c_star_candidates[next_c_star_id])
+                    # print('Number of agents assigned:', agent_count)
+                    # print()
+
+                potential_assignments = self.is_feasible_v3(
+                    self.c_star_candidates[next_c_star_id], leximin_counts)
+
+            # print('Returning', self.c_star_candidates[next_c_star_id + 1])
+            return next_c_star_id + 1
+
         upper_c_star_id = len(self.c_star_candidates) - 1
 
-        while agent_count < self.n_agents:
-            recur_result = recur_solve(upper_c_star_id)
-            if isinstance(recur_result, tuple):
-                return recur_result[1]
-            elif recur_result is not False:
-                upper_c_star_id = recur_result
+        ### for `recur_solve()`
+        # while agent_count < self.n_agents:
+        #     recur_result = recur_solve(upper_c_star_id)
+        #     if isinstance(recur_result, tuple):
+        #         return recur_result[1]
+        #     elif recur_result is not False:
+        #         upper_c_star_id = recur_result
+        #
+        #     # print(self.c_star_candidates)
+        #     next_leximin = self.c_star_candidates[upper_c_star_id]
+        #     # print(upper_c_star_id, next_leximin, leximin_counts)
+        #     if next_leximin not in leximin_counts:
+        #         leximin_counts[next_leximin] = 1
+        #     else:
+        #         leximin_counts[next_leximin] += 1
+        #     agent_count += 1
+        #
 
-            # print(self.c_star_candidates)
+        ### for `recur_solve_v2()`
+        upper_c_star_id = recur_solve(upper_c_star_id)
+        agent_count = 1
+
+        while agent_count < self.n_agents:
+            if verbose:
+                print('Number of agents assigned:', agent_count, '/', self.n_agents)
+
             next_leximin = self.c_star_candidates[upper_c_star_id]
-            # print(upper_c_star_id, next_leximin, leximin_counts)
             if next_leximin not in leximin_counts:
                 leximin_counts[next_leximin] = 1
             else:
                 leximin_counts[next_leximin] += 1
+
+            upper_c_star_id = recur_solve_v2(upper_c_star_id)
             agent_count += 1
 
         return self.is_feasible_v3(
             self.c_star_candidates[upper_c_star_id], leximin_counts)
+
+    def solve_v2(self, verbose=False):
+        return
+
 
     def get_cost_increases(self, assignments, increase_matrix=None):
         if increase_matrix is not None:
