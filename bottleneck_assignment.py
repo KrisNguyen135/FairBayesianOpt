@@ -211,3 +211,53 @@ class BottleneckAssignmentHelperV2:
             cost_matrix[agent_id, assignments[agent_id]]
             for agent_id in range(self.n_agents)
         )
+
+
+class BottleneckAssignmentHelperV3:
+    def __init__(self, cost_matrix, capacities):
+        self.cost_matrix = cost_matrix
+        self.n_agents, self.n_intvs = cost_matrix.shape
+        self.capacities = capacities
+
+    def solve(self):
+        prob = pulp.LpProblem()
+
+        c_star = pulp.LpVariable(
+            'bottleneck', 0, self.cost_matrix.max()
+        )
+
+        x = pulp.LpVariable.dicts(
+            'assignment',
+            [(agent_id, intv_id)
+            for agent_id in range(self.n_agents)
+            for intv_id in range(self.n_intvs)],
+            cat='Binary'
+        )
+
+        prob += c_star  # objective: minimize the bottleneck
+
+        # Assignment constraints
+        for agent_id in range(self.n_agents):
+            prob += pulp.lpSum(
+                x[(agent_id, intv_id)]
+                for intv_id in range(self.n_intvs)
+            ) == 1
+
+        # Capacity constraints
+        for intv_id in range(self.n_intvs):
+            prob += pulp.lpSum(
+                x[(agent_id, intv_id)]
+                for agent_id in range(self.n_agents)
+            ) <= self.capacities[intv_id]
+
+        # Bottleneck constraint
+        for agent_id in range(self.n_agents):
+            for intv_id in range(self.n_intvs):
+                prob += x[(agent_id, intv_id)] \
+                    * self.cost_matrix[agent_id, intv_id] <= c_star
+
+        status = prob.solve(solver=pulp.solvers.GUROBI_CMD())
+        if pulp.LpStatus[status] == 'Optimal':
+            return c_star.varValue
+
+        return False
