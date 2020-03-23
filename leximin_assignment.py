@@ -398,152 +398,7 @@ class LeximinAssignmentHelperV2:
 
     def solve(self, verbose=False):
         leximin_counts = {}
-        # unassigned = np.ones((self.n_agents,))
-        # updated_capacities = self.capacities.copy()
-
         agent_count = 0
-
-        def recur_solve(temp_leximin, leximin_counts, unassigned,
-                        updated_capacities, return_assignment=False):
-            """
-            `lexmin_counts` contains counts of non-unique lexima and the latest
-            leximin.
-            """
-
-            next_c_star = pulp.LpVairable(
-                'next_leximin', 0, temp_leximin
-            )
-
-            x = pulp.LpVariable.dicts(
-                'assignment',
-                [(agent_id, intv_id)
-                for agent_id in range(self.n_agents)
-                for intv_id in range(self.n_intvs)
-                if unassigned[agent_id]],
-                cat='Binary'
-            )
-
-            prob += next_c_star
-
-            # Assignment constraint
-            for agent_id in range(self.n_agents):
-                if unassigned[agent_id]:
-                    prob += pulp.lpSum(
-                        x[(agent_id, intv_id)]
-                        for intv_id in range(self.n_intvs)
-                    ) == 1
-
-            # Capacity constraints
-            for intv_id in range(self.n_intvs):
-                prob += pulp.lpSum(
-                    x[(agent_id, intv_id)]
-                    for agent_id in range(self.n_agents)
-                ) <= updated_capacities[intv_id]
-
-            # Leximin count constraints
-            for leximin in leximin_counts:
-                prob += pulp.lpSum(
-                    x[(agent_id, intv_id)]
-                    for agent_id, intv_id in np.argwhere(self.cost_matrix == leximin)
-                ) <= leximin_counts[leximin]
-
-            # Constraints for next leximin
-            for agent_id in range(self.n_agents):
-                if unassigned[agent_id]:
-                    for intv_id in range(self.n_intvs):
-                        temp_cost = self.cost_matrix[agent_id, intv_id]
-
-                        if self.cost_matrix[agent_id, intv_id] in leximin_counts:
-                            prob += x[(agent_id, intv_id)] * temp_cost \
-                                <= leximin_counts[self.cost_matrix[agent_id, intv_id]]
-                        else:
-                            prob += x[(agent_id, intv_id)] * temp_cost \
-                                <= next_c_star
-
-            status = prob.solve(solver=pulp.solvers.GUROBI_CMD())
-
-            if pulp.LpStatus[status] == 'Optimal':
-                if return_assignment:
-                    assignments = np.zeros((self.n,))
-
-                    for agent_id in range(self.n_agents):
-                        if unassigned[agent_id]:
-                            for intv_id in range(self.n_intvs):
-                                if x[(agent_id, intv_id)].varValue == 1:
-                                    assignments[agent_id] = intv_id
-
-                    return next_c_star.varValue, assignments
-
-
-                return next_c_star.varValue
-
-            return False
-
-        def recur_solve_v2(temp_leximin, leximin_counts, return_assignment=False):
-            next_c_star = pulp.LpVariable(
-                'next_leximin', 0, temp_leximin
-            )
-
-            x = pulp.LpVariable.dicts(
-                'assignment',
-                [(agent_id, intv_id)
-                for agent_id in range(self.n_agents)
-                for intv_id in range(self.n_intvs)],
-                cat='Binary'
-            )
-
-            prob = pulp.LpProblem()
-            prob += next_c_star
-
-            # Assignment constraint
-            for agent_id in range(self.n_agents):
-                prob += pulp.lpSum(
-                    x[(agent_id, intv_id)]
-                    for intv_id in range(self.n_intvs)
-                ) == 1
-
-            # Capacity constraints
-            for intv_id in range(self.n_intvs):
-                prob += pulp.lpSum(
-                    x[(agent_id, intv_id)]
-                    for agent_id in range(self.n_agents)
-                ) <= self.capacities[intv_id]
-
-            # Leximin count constraints
-            for leximin in leximin_counts:
-                prob += pulp.lpSum(
-                    x[(agent_id, intv_id)]
-                    for agent_id, intv_id in np.argwhere(self.cost_matrix == leximin)
-                ) <= leximin_counts[leximin]
-
-            # Constraints for next leximin
-            for agent_id in range(self.n_agents):
-                for intv_id in range(self.n_intvs):
-                    temp_cost = self.cost_matrix[agent_id, intv_id]
-
-                    if self.cost_matrix[agent_id, intv_id] in leximin_counts:
-                        prob += x[(agent_id, intv_id)] * temp_cost \
-                            <= leximin_counts[self.cost_matrix[agent_id, intv_id]]
-                    else:
-                        prob += x[(agent_id, intv_id)] * temp_cost \
-                            <= next_c_star
-
-            status = prob.solve(solver=pulp.solvers.GUROBI_CMD())
-
-            if pulp.LpStatus[status] == 'Optimal':
-                if return_assignment:
-                    assignments = np.zeros((self.n_agents,), dtype=int)
-
-                    for agent_id in range(self.n_agents):
-                        for intv_id in range(self.n_intvs):
-                            if x[(agent_id, intv_id)].varValue == 1:
-                                assignments[agent_id] = intv_id
-
-                    return next_c_star.varValue, assignments
-
-                return next_c_star.varValue
-
-            return False
 
         # if False is returned, the next leximin is equal to the current
         c_star = 1
@@ -553,19 +408,127 @@ class LeximinAssignmentHelperV2:
                 print('Number of agents assigned:', agent_count, '/', self.n_agents)
                 print('Current leximin:', c_star)
 
-            next_c_star = recur_solve_v2(c_star, leximin_counts)
+            next_c_star = self.recur_solve_v2(c_star, leximin_counts)
 
             if next_c_star is False:
-                # print('Reusing current leximin')
+                if verbose:
+                    print('Reusing current leximin')
                 next_c_star = c_star
                 leximin_counts[next_c_star] += 1
             else:
+                idx = np.unravel_index(
+                    np.abs(self.cost_matrix - next_c_star).argmin(),
+                    self.cost_matrix.shape
+                )
+                next_c_star = self.cost_matrix[idx]
+
+                # if next_c_star not in self.cost_matrix:
+                #     print('Non-optimal c*')
+                #     print(next_c_star)
+                #
+                #     next_c_star = self.cost_matrix[self.cost_matrix < next_c_star].max()
+                #     print(next_c_star)
+
                 leximin_counts[next_c_star] = 1
                 c_star = next_c_star
 
             agent_count += 1
 
-        final_c_star, assignments = recur_solve_v2(
+        final_c_star, assignments = self.recur_solve_v2(
             c_star, leximin_counts, return_assignment=True)
 
         return assignments  #, leximin_counts
+
+    def get_cost(self, assignments, cost_matrix=None):
+        if cost_matrix is None:
+            return sum(
+                self.cost_matrix[agent_id, assignments[agent_id]]
+                for agent_id in range(self.n_agents)
+            )
+
+        return sum(
+            cost_matrix[agent_id, assignments[agent_id]]
+            for agent_id in range(self.n_agents)
+        )
+
+    def get_cost_increases(self, assignments, increase_matrix=None):
+        if increase_matrix is not None:
+            return np.array([
+                increase_matrix[agent_id, assignments[agent_id]]
+                for agent_id in range(self.n_agents)
+            ])
+
+        increases = []
+        for agent_id in range(self.n_agents):
+            lowest_cost = self.cost_matrix[agent_id, :].min()
+
+            increases.append(
+                self.cost_matrix[agent_id, assignments[agent_id]]
+                - lowest_cost
+            )
+
+        return np.array(increases)
+
+    def recur_solve_v2(self, temp_leximin, leximin_counts, return_assignment=False):
+        next_c_star = pulp.LpVariable(
+            'next_leximin', 0, temp_leximin
+        )
+
+        x = pulp.LpVariable.dicts(
+            'assignment',
+            [(agent_id, intv_id)
+            for agent_id in range(self.n_agents)
+            for intv_id in range(self.n_intvs)],
+            cat='Binary'
+        )
+
+        prob = pulp.LpProblem()
+        prob += next_c_star
+
+        # Assignment constraint
+        for agent_id in range(self.n_agents):
+            prob += pulp.lpSum(
+                x[(agent_id, intv_id)]
+                for intv_id in range(self.n_intvs)
+            ) == 1
+
+        # Capacity constraints
+        for intv_id in range(self.n_intvs):
+            prob += pulp.lpSum(
+                x[(agent_id, intv_id)]
+                for agent_id in range(self.n_agents)
+            ) <= self.capacities[intv_id]
+
+        # Leximin count constraints
+        for leximin in leximin_counts:
+            prob += pulp.lpSum(
+                x[(agent_id, intv_id)]
+                for agent_id, intv_id in np.argwhere(self.cost_matrix == leximin)
+            ) <= leximin_counts[leximin]
+
+        # Constraints for next leximin
+        for agent_id in range(self.n_agents):
+            for intv_id in range(self.n_intvs):
+                temp_cost = self.cost_matrix[agent_id, intv_id]
+
+                # TODO: fix logic
+                if temp_cost not in leximin_counts:
+                    prob += x[(agent_id, intv_id)] * temp_cost \
+                        <= next_c_star
+
+        status = prob.solve(solver=pulp.solvers.GUROBI_CMD())
+
+        if pulp.LpStatus[status] == 'Optimal':
+            if return_assignment:
+                assignments = np.zeros((self.n_agents,), dtype=int)
+
+                for agent_id in range(self.n_agents):
+                    for intv_id in range(self.n_intvs):
+                        if x[(agent_id, intv_id)].varValue == 1:
+                            assignments[agent_id] = intv_id
+
+                return next_c_star.varValue, assignments
+
+            return next_c_star.varValue
+
+        return False
