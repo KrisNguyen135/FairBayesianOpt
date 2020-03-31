@@ -555,7 +555,7 @@ class LeximinAssignmentHelperV3:
         def recur_solve(temp_leximin, leximin_counts, return_assignment=False):
             # TODO: make the category here modular
             next_c_star = pulp.LpVariable(
-                'next_leximin', 0, temp_leximin, cat='Integer'
+                'next_leximin', 0, temp_leximin #, cat='Integer'
             )
 
             x = pulp.LpVariable.dicts(
