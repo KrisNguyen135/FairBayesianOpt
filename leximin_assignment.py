@@ -2,7 +2,7 @@ import pulp
 import pandas as pd
 import numpy as np
 
-
+'''
 class LeximinAssignmentHelper:
     def __init__(self, cost_matrix, capacities):
         self.cost_matrix = cost_matrix
@@ -388,9 +388,11 @@ class LeximinAssignmentHelper:
             cost_matrix[agent_id, assignments[agent_id]]
             for agent_id in range(self.n_agents)
         )
+'''
 
 
 # Find the next leximin as the value in the cost matrix closest to the solved c*
+'''
 class LeximinAssignmentHelperV2:
     def __init__(self, cost_matrix, capacities):
         self.cost_matrix = cost_matrix
@@ -532,6 +534,7 @@ class LeximinAssignmentHelperV2:
             return next_c_star.varValue
 
         return False
+'''
 
 
 # Implement "Save & Load"
@@ -555,7 +558,7 @@ class LeximinAssignmentHelperV3:
         def recur_solve(temp_leximin, leximin_counts, return_assignment=False):
             # TODO: make the category here modular
             next_c_star = pulp.LpVariable(
-                'next_leximin', 0, temp_leximin #, cat='Integer'
+                'next_leximin', 0, temp_leximin, cat='Integer'
             )
 
             x = pulp.LpVariable.dicts(
