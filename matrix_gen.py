@@ -93,3 +93,26 @@ class MatrixGenerator:
             matrix_list.append(other_matrix)
 
         return matrix_list
+
+    def get_increase_matrix_pair(self, round_=True):
+        '''
+        Return a pair of matrices with the same elements drawn from `self.dist`.
+        The elements in the first are randomly sorted; those in the second are
+        row-sorted.
+        '''
+        matrix = self.dist(
+            *self.dist_params,
+            size=(self.n_agents, self.n_intvs)
+        )
+        if round_:
+            matrix = matrix.round(5)
+        sorted_matrix = matrix.copy()
+        sorted_matrix.sort(axis=1)
+
+        increase_matrix = matrix - np.repeat(
+            matrix.min(axis=1), self.n_intvs
+        ).reshape((self.n_agents, self.n_intvs))
+        sorted_increase_matrix = increase_matrix.copy()
+        sorted_increase_matrix.sort(axis=1)
+
+        return (matrix, sorted_matrix), (increase_matrix, sorted_increase_matrix)

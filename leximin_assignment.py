@@ -558,7 +558,7 @@ class LeximinAssignmentHelperV3:
         def recur_solve(temp_leximin, leximin_counts, return_assignment=False):
             # TODO: make the category here modular
             next_c_star = pulp.LpVariable(
-                'next_leximin', 0, temp_leximin, cat='Integer'
+                'next_leximin', 0, temp_leximin#, cat='Integer'
             )
 
             x = pulp.LpVariable.dicts(
@@ -632,7 +632,12 @@ class LeximinAssignmentHelperV3:
                     if verbose:
                         print('Reusing current leximin')
                     next_c_star = c_star
-                    leximin_counts[next_c_star] += 1
+                    try:
+                        leximin_counts[next_c_star] += 1
+                    except KeyError:
+                        print(leximin_counts)
+                        print(next_c_star)
+                        raise KeyError
                 else:
                     idx = np.unravel_index(
                         np.abs(self.cost_matrix - next_c_star).argmin(),
@@ -659,8 +664,13 @@ class LeximinAssignmentHelperV3:
 
                 return agent_count, leximin_counts, c_star
 
-        final_c_star, assignments = recur_solve(
-            c_star, leximin_counts, return_assignment=True)
+        try:
+            final_c_star, assignments = recur_solve(
+                c_star, leximin_counts, return_assignment=True)
+        except TypeError:
+            # print(leximin_counts)
+            # print(c_star)
+            return False
 
         return assignments  #, leximin_counts
 
@@ -791,7 +801,8 @@ class LeximinAssignmentHelperV4:
 
             leximin_counts = {}
             agent_count = 0
-            c_star = self.cost_matrix.max()
+            # c_star = self.cost_matrix.max()
+            c_star = 1.1
             # fixed_allocs = []
         elif verbose:
             print('Continuing from input data...')
@@ -801,7 +812,7 @@ class LeximinAssignmentHelperV4:
 
         def recur_solve(temp_leximin, leximin_counts, return_assignment=False):
             next_c_star = pulp.LpVariable(
-                'next_leximin', 0, temp_leximin, cat='Integer'
+                'next_leximin', 0, temp_leximin#, cat='Integer'
             )
 
             x = pulp.LpVariable.dicts(
@@ -883,8 +894,14 @@ class LeximinAssignmentHelperV4:
                 if next_c_star is False:
                     if verbose:
                         print('Reusing current leximin')
+
                     next_c_star = c_star
-                    leximin_counts[next_c_star] += 1
+                    try:
+                        leximin_counts[next_c_star] += 1
+                    except KeyError:
+                        print(leximin_counts)
+                        print(next_c_star)
+                        return
                 else:
                     idx = np.unravel_index(
                         np.abs(self.cost_matrix - next_c_star).argmin(),
@@ -893,7 +910,7 @@ class LeximinAssignmentHelperV4:
                     next_c_star = self.cost_matrix[idx]
 
                     c_star = next_c_star
-                    leximin_counts[next_c_star] = 1
+                    leximin_counts[c_star] = 1
 
                 occurrences = np.argwhere(self.cost_matrix == c_star)
                 if len(occurrences) == leximin_counts[c_star]:
@@ -1036,3 +1053,32 @@ class LeximinAssignmentHelperV4:
             return next_c_star.varValue
 
         return False
+
+
+# Used only when rows are sorted
+class RowSortedLeximinAssignmentHelper:
+    def __init__(self, cost_matrix, capacities):
+        self.cost_matrix = cost_matrix
+        self.n_agents, self.n_intvs = cost_matrix.shape
+        self.capacities = capacities
+
+    def solve(self):
+        assigned_agents = []
+        assignments = np.ones(self.n_agents, dtype=int) * 10
+        agent_array = np.arange(0, self.n_agents)
+
+        for j in range(self.n_intvs - 1, -1, -1):
+            mask = [
+                agent_id not in assigned_agents
+                for agent_id in agent_array
+            ]
+
+            filtered_smallest_agents = np.argpartition(
+                self.cost_matrix[mask, j], self.capacities[j] - 1
+            )[: self.capacities[j]]
+
+            smallest_agents = agent_array[mask][filtered_smallest_agents]
+            assignments[smallest_agents] = j
+            assigned_agents += smallest_agents.tolist()
+
+        return assignments
