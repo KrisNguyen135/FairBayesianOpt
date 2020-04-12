@@ -392,7 +392,7 @@ class LeximinAssignmentHelper:
 
 
 # Find the next leximin as the value in the cost matrix closest to the solved c*
-'''
+
 class LeximinAssignmentHelperV2:
     def __init__(self, cost_matrix, capacities):
         self.cost_matrix = cost_matrix
@@ -534,7 +534,7 @@ class LeximinAssignmentHelperV2:
             return next_c_star.varValue
 
         return False
-'''
+
 
 
 # Implement "Save & Load"
@@ -779,19 +779,20 @@ class LeximinAssignmentHelperV4:
         self.capacities = capacities
 
     def solve(self, leximin_counts=None, agent_count=None, c_star=None,
-              fixed_allocs=None, verbose=False):
+              verbose=False):
         updated_capacities = self.capacities.copy()
+        assigned_agents = {}
 
         # Load if input data is valid
         if leximin_counts is None or agent_count is None \
-                or c_star is None or fixed_allocs is None:
+                or c_star is None:
             if verbose:
                 print('Running from the beginning...')
 
             leximin_counts = {}
             agent_count = 0
-            c_star = 1
-            fixed_allocs = []
+            c_star = self.cost_matrix.max()
+            # fixed_allocs = []
         elif verbose:
             print('Continuing from input data...')
 
@@ -800,7 +801,7 @@ class LeximinAssignmentHelperV4:
 
         def recur_solve(temp_leximin, leximin_counts, return_assignment=False):
             next_c_star = pulp.LpVariable(
-                'next_leximin', 0, temp_leximin
+                'next_leximin', 0, temp_leximin, cat='Integer'
             )
 
             x = pulp.LpVariable.dicts(
@@ -808,7 +809,7 @@ class LeximinAssignmentHelperV4:
                 [(agent_id, intv_id)
                 for agent_id in range(self.n_agents)
                 for intv_id in range(self.n_intvs)
-                if [agent_id, intv_id] not in fixed_allocs],
+                if agent_id not in assigned_agents],
                 cat='Binary'
             )
 
@@ -817,36 +818,40 @@ class LeximinAssignmentHelperV4:
 
             # Assignment constraint
             for agent_id in range(self.n_agents):
-                prob += pulp.lpSum(
-                    x[(agent_id, intv_id)]
-                    for intv_id in range(self.n_intvs)
-                    if [agent_id, intv_id] not in fixed_allocs
-                ) == 1
+                if agent_id not in assigned_agents:
+                    prob += pulp.lpSum(
+                        x[(agent_id, intv_id)]
+                        for intv_id in range(self.n_intvs)
+                    ) == 1
 
             # Capacity constraints
             for intv_id in range(self.n_intvs):
                 prob += pulp.lpSum(
                     x[(agent_id, intv_id)]
                     for agent_id in range(self.n_agents)
-                    if [agent_id, intv_id] not in fixed_allocs
-                ) <= self.capacities[intv_id]
+                    if agent_id not in assigned_agents
+                ) <= updated_capacities[intv_id]
 
             # Leximin count constraints
             # fixed allocations do not contain non-unique lexima in this dict.
             for leximin in leximin_counts:
                 prob += pulp.lpSum(
                     x[(agent_id, intv_id)]
-                    for agent_id, intv_id in np.argwhere(self.cost_matrix == leximin)
+                    # for agent_id, intv_id in np.argwhere(self.cost_matrix == leximin)
+                    for agent_id in range(self.n_agents)
+                    for intv_id in range(self.n_intvs)
+                    if agent_id not in assigned_agents and self.cost_matrix[agent_id, intv_id] == leximin
                 ) == leximin_counts[leximin]
 
             # Constraints for next leximin
             for agent_id in range(self.n_agents):
-                for intv_id in range(self.n_intvs):
-                    temp_cost = self.cost_matrix[agent_id, intv_id]
+                if agent_id not in assigned_agents:
+                    for intv_id in range(self.n_intvs):
+                        temp_cost = self.cost_matrix[agent_id, intv_id]
 
-                    if temp_cost not in leximin_counts:
-                        prob += x[(agent_id, intv_id)] * temp_cost \
-                            <= next_c_star
+                        if temp_cost not in leximin_counts:
+                            prob += x[(agent_id, intv_id)] * temp_cost \
+                                <= next_c_star
 
             status = prob.solve(solver=pulp.solvers.GUROBI_CMD())
 
@@ -855,9 +860,10 @@ class LeximinAssignmentHelperV4:
                     assignments = np.zeros((self.n_agents,), dtype=int)
 
                     for agent_id in range(self.n_agents):
-                        for intv_id in range(self.n_intvs):
-                            if x[(agent_id, intv_id)].varValue == 1:
-                                assignments[agent_id] = intv_id
+                        if agent_id not in assigned_agents:
+                            for intv_id in range(self.n_intvs):
+                                if x[(agent_id, intv_id)].varValue == 1:
+                                    assignments[agent_id] = intv_id
 
                     return next_c_star.varValue, assignments
 
@@ -884,18 +890,27 @@ class LeximinAssignmentHelperV4:
                         np.abs(self.cost_matrix - next_c_star).argmin(),
                         self.cost_matrix.shape
                     )
-                    next_c_star = updated_cost_matrix[idx]
+                    next_c_star = self.cost_matrix[idx]
 
                     c_star = next_c_star
                     leximin_counts[next_c_star] = 1
 
-                occurrences = np.argwhere(updated_cost_matrix == c_star)
+                occurrences = np.argwhere(self.cost_matrix == c_star)
                 if len(occurrences) == leximin_counts[c_star]:
-                    fixed_allocs += occurrences.tolist()
-                    for _, intv_id in occurrences:
+                    # assigned_agents += occurrences.tolist()
+                    for agent_id, intv_id in occurrences.tolist():
+                        assigned_agents[agent_id] = intv_id
                         updated_capacities[intv_id] -= 1
 
+                    del leximin_counts[c_star]
+
                 agent_count += 1
+
+                # print(agent_count, self.n_agents - 1)
+                # print(leximin_counts)
+                # print(assigned_agents)
+                # print(updated_capacities)
+                # print()
 
             except KeyboardInterrupt:
                 # Update c* before returning
@@ -910,10 +925,13 @@ class LeximinAssignmentHelperV4:
                     print('Invalid count value')
 
                 # TODO: `fixed_allocs` is to be cross-checked
-                return agent_count, leximin_counts, c_star, fixed_allocs
+                return agent_count, leximin_counts, c_star, assigned_agents
 
         final_c_star, assignments = recur_solve(
             c_star, leximin_counts, return_assignment=True)
+
+        for agent_id in assigned_agents:
+            assignments[agent_id] = assigned_agents[agent_id]
 
         return assignments  #, leximin_counts
 
@@ -946,3 +964,75 @@ class LeximinAssignmentHelperV4:
             )
 
         return np.array(increases)
+
+    def recur_solve_debug(self, temp_leximin, leximin_counts, assigned_agents,
+            updated_capacities, return_assignment=False):
+        next_c_star = pulp.LpVariable(
+            'next_leximin', 0, temp_leximin#, cat='Integer'
+        )
+
+        x = pulp.LpVariable.dicts(
+            'assignment',
+            [(agent_id, intv_id)
+            for agent_id in range(self.n_agents)
+            for intv_id in range(self.n_intvs)
+            if agent_id not in assigned_agents],
+            cat='Binary'
+        )
+
+        prob = pulp.LpProblem()
+        prob += next_c_star
+
+        # Assignment constraint
+        for agent_id in range(self.n_agents):
+            if agent_id not in assigned_agents:
+                prob += pulp.lpSum(
+                    x[(agent_id, intv_id)]
+                    for intv_id in range(self.n_intvs)
+                ) == 1
+
+        # Capacity constraints
+        for intv_id in range(self.n_intvs):
+            prob += pulp.lpSum(
+                x[(agent_id, intv_id)]
+                for agent_id in range(self.n_agents)
+                if agent_id not in assigned_agents
+            ) <= updated_capacities[intv_id]
+
+        # Leximin count constraints
+        # fixed allocations do not contain non-unique lexima in this dict.
+        for leximin in leximin_counts:
+            prob += pulp.lpSum(
+                x[(agent_id, intv_id)]
+                for agent_id in range(self.n_agents)
+                for intv_id in range(self.n_intvs)
+                if agent_id not in assigned_agents and self.cost_matrix[agent_id, intv_id] == leximin
+            ) == leximin_counts[leximin]
+
+        # Constraints for next leximin
+        for agent_id in range(self.n_agents):
+            if agent_id not in assigned_agents:
+                for intv_id in range(self.n_intvs):
+                    temp_cost = self.cost_matrix[agent_id, intv_id]
+
+                    if temp_cost not in leximin_counts:
+                        prob += x[(agent_id, intv_id)] * temp_cost \
+                            <= next_c_star
+
+        status = prob.solve(solver=pulp.solvers.GUROBI_CMD())
+
+        if pulp.LpStatus[status] == 'Optimal':
+            if return_assignment:
+                assignments = np.zeros((self.n_agents,), dtype=int)
+
+                for agent_id in range(self.n_agents):
+                    if agent_id not in assigned_agents:
+                        for intv_id in range(self.n_intvs):
+                            if x[(agent_id, intv_id)].varValue == 1:
+                                assignments[agent_id] = intv_id
+
+                return next_c_star.varValue, assignments
+
+            return next_c_star.varValue
+
+        return False
