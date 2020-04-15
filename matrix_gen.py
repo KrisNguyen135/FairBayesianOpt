@@ -116,3 +116,26 @@ class MatrixGenerator:
         sorted_increase_matrix.sort(axis=1)
 
         return (matrix, sorted_matrix), (increase_matrix, sorted_increase_matrix)
+
+    def partially_sorted_matrix_pair(self, n_rows_to_sort=1, round_=True):
+        '''
+        Return a pair of matrices with the same elements drawn from `self.dist`.
+        The elements in the first are randomly sorted; the first `n_rows_to_sort`
+        rows in the second are sorted.
+        '''
+        matrix = self.dist(
+            *self.dist_params,
+            size=(self.n_agents, self.n_intvs)
+        )
+        if round_:
+            matrix = matrix.round(5)
+        sorted_matrix = matrix.copy()
+        sorted_matrix[: n_rows_to_sort, :].sort(axis=1)
+
+        increase_matrix = matrix - np.repeat(
+            matrix.min(axis=1), self.n_intvs
+        ).reshape((self.n_agents, self.n_intvs))
+        sorted_increase_matrix = increase_matrix.copy()
+        sorted_increase_matrix[: n_rows_to_sort, :].sort(axis=1)
+
+        return (matrix, sorted_matrix), (increase_matrix, sorted_increase_matrix)

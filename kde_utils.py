@@ -1,5 +1,9 @@
+import pandas as pd
 import numpy as np
+np.random.seed(0)
 from sklearn.neighbors import KernelDensity
+
+import matplotlib.pyplot as plt
 
 
 class KDEHelper:
@@ -33,3 +37,19 @@ class KDEHelper:
         samples = self.model.sample(n_samples=size[0] * size[1]).reshape(size)
 
         return trans_fn(samples)
+
+
+if __name__ == '__main__':
+    # Extract the probabilities into a flat np array
+    data = pd.read_csv('data.csv', index_col=0)[
+        ['ES', 'PSH', 'TH', 'RRH', 'PREV']
+    ].to_numpy().flatten()
+
+    # Transform to the inverse sigmoid space and feed into the KDE API
+    kde = kde_utils.KDEHelper(np.log(data) - np.log(1 - data))
+    samples = kde.sample_and_transform(size=(10000, 1))  # draw 10,000 samples
+
+    # Compare with the original data
+    plt.hist(data, bins=50, alpha=0.4, density=True)
+    plt.hist(samples, bins=50, alpha=0.4, density=True)
+    plt.show()
