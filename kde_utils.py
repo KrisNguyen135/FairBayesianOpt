@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 np.random.seed(0)
 from sklearn.neighbors import KernelDensity
+from scipy.special import logit
 
 import matplotlib.pyplot as plt
 
@@ -12,7 +13,12 @@ class KDEHelper:
     '''
 
     def __init__(self, data, bandwidth_est='silverman'):
-        self.data = data
+        # Transform data to the real space
+        if np.all(data >= 0) and np.all(data <= 1):
+            self.data = logit(data)
+        else:
+            self.data = data
+
         if bandwidth_est == 'silverman':
             self.bandwidth = 0.9 \
                 * min(
@@ -37,6 +43,12 @@ class KDEHelper:
         samples = self.model.sample(n_samples=size[0] * size[1]).reshape(size)
 
         return trans_fn(samples)
+
+    def get_transformed_pdf(self, xs=np.linspace(0, 1, 1002)[1: -1].reshape(-1, 1)):
+        pdfs = np.exp(self.model.score_samples(logit(xs))).flatten() \
+            / (xs * (1 - xs)).flatten()
+
+        return pdfs
 
 
 if __name__ == '__main__':

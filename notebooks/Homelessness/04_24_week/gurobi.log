@@ -1,0 +1,43 @@
+
+Gurobi 9.0.1 (mac64, gurobi_cl) logging started Sat Apr 18 12:17:24 2020
+
+Using license file /Users/quannguyen/gurobi.lic
+Set parameter LogFile to value gurobi.log
+Academic license - for non-commercial use only
+
+Gurobi Optimizer version 9.0.1 build v9.0.1rc0 (mac64)
+Copyright (c) 2020, Gurobi Optimization, LLC
+
+Read LP format model from file /var/folders/wm/cr9_rg9d40sbj5kr5lkgwrlh0000gn/T/e2da977fcfdc42e8b4594eb3f0a6a68d-pulp.lp
+Reading time = 0.00 seconds
+OBJ: 35 rows, 150 columns, 300 nonzeros
+Optimize a model with 35 rows, 150 columns and 300 nonzeros
+Model fingerprint: 0xd22d1db1
+Variable types: 0 continuous, 150 integer (150 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e-208, 1e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 6e+00]
+Found heuristic solution: objective 5.0000000
+Presolve time: 0.00s
+Presolved: 35 rows, 150 columns, 300 nonzeros
+Variable types: 0 continuous, 150 integer (150 binary)
+
+Root relaxation: objective 0.000000e+00, 37 iterations, 0.00 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0       0.0000000    0.00000  0.00%     -    0s
+
+Explored 0 nodes (37 simplex iterations) in 0.00 seconds
+Thread count was 12 (of 12 available processors)
+
+Solution count 2: 0 5 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 4.198909236850e-114, best bound 0.000000000000e+00, gap 0.0000%
+
+Wrote result file '/var/folders/wm/cr9_rg9d40sbj5kr5lkgwrlh0000gn/T/e2da977fcfdc42e8b4594eb3f0a6a68d-pulp.sol'
+
