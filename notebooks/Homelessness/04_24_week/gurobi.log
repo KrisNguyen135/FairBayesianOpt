@@ -1,0 +1,10 @@
+
+Gurobi 9.0.1 (mac64, gurobi_cl) logging started Wed Apr 22 19:32:01 2020
+
+Using license file /Users/quannguyen/gurobi.lic
+Set parameter LogFile to value gurobi.log
+Academic license - for non-commercial use only
+
+Gurobi Optimizer version 9.0.1 build v9.0.1rc0 (mac64)
+Copyright (c) 2020, Gurobi Optimization, LLC
+
