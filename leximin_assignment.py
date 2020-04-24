@@ -1094,3 +1094,32 @@ class RowSortedLeximinAssignmentHelper:
             cost_matrix[agent_id, assignments[agent_id]]
             for agent_id in range(self.n_agents)
         )
+
+
+class RowSortedLeximinAssignmentHelperV2:
+    def __init__(self, cost_matrix, capacities):
+        self.cost_matrix = cost_matrix
+        self.n_agents, self.n_intvs = cost_matrix.shape
+        self.capacities = capacities
+
+    def solve(self):
+        updated_capacities = self.capacities.copy()
+
+        assignments = np.ones(self.n_agents, dtype=int) * 10
+        remaining_agents = np.arange(0, self.n_agents)
+        pending_slots = []
+
+        for j in range(self.n_intvs - 1, -1, -1):
+            while self.updated_capacities[j] > 0:
+                min_agents = np.argwhere(
+                    self.cost_matrix[remaining_agents, j]
+                    == self.cost_matrix[remaining_agents, j].min()
+                ).flatten()
+
+                if len(min_agents) <= self.updated_capacities[j]:
+                    assignments[min_agents] = j
+                    self.updated_capacities -= len(min_agents)
+                else:
+                    break
+
+        return
