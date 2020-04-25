@@ -801,8 +801,8 @@ class LeximinAssignmentHelperV4:
 
             leximin_counts = {}
             agent_count = 0
-            # c_star = self.cost_matrix.max()
-            c_star = 1.1
+            c_star = self.cost_matrix.max()
+            # c_star = 1.1
             # fixed_allocs = []
         elif verbose:
             print('Continuing from input data...')
@@ -812,7 +812,7 @@ class LeximinAssignmentHelperV4:
 
         def recur_solve(temp_leximin, leximin_counts, return_assignment=False):
             next_c_star = pulp.LpVariable(
-                'next_leximin', 0, temp_leximin#, cat='Integer'
+                'next_leximin', 0, temp_leximin, cat='Integer'
             )
 
             x = pulp.LpVariable.dicts(
