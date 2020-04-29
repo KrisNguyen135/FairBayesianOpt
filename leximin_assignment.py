@@ -1095,6 +1095,24 @@ class RowSortedLeximinAssignmentHelper:
             for agent_id in range(self.n_agents)
         )
 
+    def get_cost_increases(self, assignments, increase_matrix=None):
+        if increase_matrix is not None:
+            return np.array([
+                increase_matrix[agent_id, assignments[agent_id]]
+                for agent_id in range(self.n_agents)
+            ])
+
+        increases = []
+        for agent_id in range(self.n_agents):
+            lowest_cost = self.cost_matrix[agent_id, :].min()
+
+            increases.append(
+                self.cost_matrix[agent_id, assignments[agent_id]]
+                - lowest_cost
+            )
+
+        return np.array(increases)
+
 
 class RowSortedLeximinAssignmentHelperV2:
     def __init__(self, cost_matrix, capacities):
