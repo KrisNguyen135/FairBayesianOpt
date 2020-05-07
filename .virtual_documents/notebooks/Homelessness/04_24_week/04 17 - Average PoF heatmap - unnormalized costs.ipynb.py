@@ -322,4 +322,60 @@ plt.xlabel('beta')
 plt.show()
 
 
+avg_lu_pofs = np.mean(lu_pofs, axis=2)
+avg_ln_pofs = np.mean(ln_pofs, axis=2)
+max_avg_pof = np.max([avg_lu_pofs, avg_ln_pofs])
+
+fig, ax = plt.subplots(
+    1, 2, figsize=(20, 7.5), sharex=True, sharey=True,
+    gridspec_kw=dict(width_ratios=[4.4, 5.6])
+)
+
+sns.heatmap(
+    avg_lu_pofs,
+    xticklabels=BETAS, yticklabels=ALPHAS,
+    label='big', cmap='Blues_r', ax=ax[0],
+    cbar=False, vmin=1, vmax=max_avg_pof
+)
+
+cs = sns.heatmap(
+    avg_ln_pofs,
+    xticklabels=BETAS, yticklabels=ALPHAS,
+    label='big', cmap='Blues_r', ax=ax[1],
+    cbar=True, vmin=1, vmax=max_avg_pof
+)
+
+ax[0].set_ylabel('Alpha')
+ax[0].set_xlabel('Beta')
+ax[1].set_xlabel('Beta');
+
+
+avg_lu_pofs = np.mean(lu_pofs, axis=2)
+avg_ln_pofs = np.mean(ln_pofs, axis=2)
+max_avg_pof = np.max([avg_lu_pofs, avg_ln_pofs])
+
+fig, ax = plt.subplots(
+    1, 2, figsize=(20, 7.5), sharex=True, sharey=True,
+    gridspec_kw=dict(width_ratios=[4.4, 5.6])
+)
+
+sns.heatmap(
+    avg_lu_pofs,
+    xticklabels=BETAS, yticklabels=ALPHAS,
+    label='big', ax=ax[0],
+    cbar=False, vmin=1, vmax=max_avg_pof
+)
+
+cs = sns.heatmap(
+    avg_ln_pofs,
+    xticklabels=BETAS, yticklabels=ALPHAS,
+    label='big', ax=ax[1],
+    cbar=True, vmin=1, vmax=max_avg_pof
+)
+
+ax[0].set_ylabel('Alpha')
+ax[0].set_xlabel('Beta')
+ax[1].set_xlabel('Beta');
+
+
 
