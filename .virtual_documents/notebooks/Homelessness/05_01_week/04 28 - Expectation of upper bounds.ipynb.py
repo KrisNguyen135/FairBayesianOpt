@@ -110,7 +110,7 @@ for i in range(len(labels)):
     errors = 1 + (N_COLS - 1) * errors
     ax[i].errorbar(
         NS, 1 + (N_COLS - 1) * np.array(r_u[i]).mean(axis=1),
-        yerr=errors, label=r'PoF$(L_u)$',
+        yerr=errors, label=r'$L_u$',
         capsize=5, capthick=3, marker='o', markersize=10
     )
     
@@ -120,14 +120,15 @@ for i in range(len(labels)):
     errors = 1 + (N_COLS - 1) * errors
     ax[i].errorbar(
         NS, 1 + (N_COLS - 2) * np.array(r_n[i]).mean(axis=1),
-        yerr=errors, label=r'PoF$(L_n)$',
+        yerr=errors, label=r'$L_n$',
         capsize=5, capthick=3, marker='^', markersize=10
     )
     
-    ax[i].set_xlabel(r'$n$' + '\n\n' + '$' + labels[i] + r'$')
+    ax[i].set_title('\n\n' + '$' + labels[i] + r'$' + '\n')
 
 ax[-1].legend()
-ax[0].set_ylabel('Upper bound')
+ax[0].set_ylabel('Price of fairness bound\n')
+ax[1].set_xlabel('\nNumber of agents')
     
 plt.show()
 
@@ -294,10 +295,13 @@ for i in range(len(labels)):
         capsize=5, capthick=3, marker='^', markersize=10
     )
     
-    ax[i].set_xlabel(r'$n$' + '\n\n' + '$' + labels[i] + r'$')
+    # ax[i].set_xlabel(r'$n$' + '\n\n' + '$' + labels[i] + r'$')
+    # ax[i].set_xlabel('Number of agents' + '\n\n' + '$' + labels[i] + r'$')
+    ax[i].set_title('\n\n' + '$' + labels[i] + r'$' + '\n')
 
 ax[-1].legend()
 ax[0].set_ylabel('Empirical price of fairness\n')
+ax[1].set_xlabel('\nNumber of agents')
     
 plt.show()
 
@@ -367,6 +371,8 @@ plt.ylabel('Price of fairness of $L_u$')
 plt.show()
 
 
+plt.figure(figsize=(20, 7))
+
 colors = ['w', 'silver'] * len(NS)
 
 ax = sns.boxplot(x='N', y='PoF', hue='Sorted rows', data=pof_lu_df)
@@ -375,13 +381,15 @@ for i, artist in enumerate(ax.artists):
     artist.set_facecolor(colors[i])
 
 my_patches = [
-    mpatches.Patch(facecolor=colors[0], edgecolor='k', label='False'),
-    mpatches.Patch(facecolor=colors[1], edgecolor='k', label='True')
+    mpatches.Patch(facecolor=colors[0], edgecolor='k', label='Rows not sorted'),
+    mpatches.Patch(facecolor=colors[1], edgecolor='k', label='Rows sorted')
 ]
 
-ax.legend(handles=my_patches, title='Sorted rows')
+ax.legend(handles=my_patches)
     
-plt.ylabel('Price of fairness of $L_u$')
+plt.ylabel(r'PoF$(L_u)$' + '\n')
+plt.xlabel('\nNumber of agents')
+
 plt.show()
 
 
