@@ -11,6 +11,7 @@ plt.rcParams['figure.figsize'] = 20, 13
 plt.rcParams['font.size'] = 20
 plt.rcParams['lines.linewidth'] = 2
 import seaborn as sns
+import tikzplotlib
 
 import sys
 sys.path.insert(0, '../../..')
@@ -390,7 +391,13 @@ ax.legend(handles=my_patches)
 plt.ylabel(r'PoF$(L_u)$' + '\n')
 plt.xlabel('\nNumber of agents')
 
-plt.show()
+# plt.show()
+
+tikzplotlib.save(
+    'pof_lu_sorted_vs_not_sorted.tex',
+    axis_height='7cm',
+    axis_width='20cm',
+)
 
 
 pof_ln_df = pd.DataFrame(columns=['PoF', 'N', 'Sorted rows'])

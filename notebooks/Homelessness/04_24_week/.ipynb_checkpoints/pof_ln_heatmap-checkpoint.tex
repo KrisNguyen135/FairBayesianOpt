@@ -1,0 +1,44 @@
+% This file was created by tikzplotlib v0.9.1.
+\begin{tikzpicture}
+
+\definecolor{color0}{rgb}{0.917647058823529,0.917647058823529,0.949019607843137}
+
+\begin{axis}[
+axis background/.style={fill=color0},
+axis line style={white},
+colorbar,
+colorbar style={ytick={1,1.025,1.05,1.075,1.1,1.125,1.15},yticklabels={1.000,1.025,1.050,1.075,1.100,1.125,1.150},ylabel={}},
+colormap={mymap}{[1pt]
+  rgb(0pt)=(1,0.96078431372549,0.941176470588235);
+  rgb(1pt)=(0.996078431372549,0.87843137254902,0.823529411764706);
+  rgb(2pt)=(0.988235294117647,0.733333333333333,0.631372549019608);
+  rgb(3pt)=(0.988235294117647,0.572549019607843,0.447058823529412);
+  rgb(4pt)=(0.984313725490196,0.415686274509804,0.290196078431373);
+  rgb(5pt)=(0.937254901960784,0.231372549019608,0.172549019607843);
+  rgb(6pt)=(0.796078431372549,0.0941176470588235,0.113725490196078);
+  rgb(7pt)=(0.647058823529412,0.0588235294117647,0.0823529411764706);
+  rgb(8pt)=(0.403921568627451,0,0.0509803921568627)
+},
+point meta max=1.13632078843011,
+point meta min=1,
+tick align=outside,
+tick pos=left,
+x grid style={white},
+xlabel={beta},
+xmin=0, xmax=10,
+xtick style={color=white!15!black},
+xtick={0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5},
+xticklabels={0.1,0.2,0.4,0.6,0.8,1,2,4,6,8},
+y dir=reverse,
+y grid style={white},
+ylabel={alpha},
+ymin=0, ymax=10,
+ytick style={color=white!15!black},
+ytick={0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5},
+yticklabel style = {rotate=90.0},
+yticklabels={0.1,0.2,0.4,0.6,0.8,1,2,4,6,8}
+]
+\addplot graphics [includegraphics cmd=\pgfimage,xmin=0, xmax=10, ymin=10, ymax=0] {pof_ln_heatmap_tikz.png};
+\end{axis}
+
+\end{tikzpicture}
