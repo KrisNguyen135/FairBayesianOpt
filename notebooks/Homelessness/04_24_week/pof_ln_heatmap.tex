@@ -29,7 +29,6 @@ xmin=0, xmax=10,
 xtick style={color=white!15!black},
 xtick={0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5},
 xticklabels={0.1,0.2,0.4,0.6,0.8,1,2,4,6,8},
-y dir=reverse,
 y grid style={white},
 ylabel={alpha},
 ymin=0, ymax=10,
@@ -38,7 +37,7 @@ ytick={0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5},
 yticklabel style = {rotate=90.0},
 yticklabels={0.1,0.2,0.4,0.6,0.8,1,2,4,6,8}
 ]
-\addplot graphics [includegraphics cmd=\pgfimage,xmin=0, xmax=10, ymin=10, ymax=0] {pof_ln_heatmap_tikz.png};
+\addplot graphics [includegraphics cmd=\pgfimage,xmin=0, xmax=10, ymin=0, ymax=10] {pof_ln_heatmap_tikz.png};
 \end{axis}
 
 \end{tikzpicture}

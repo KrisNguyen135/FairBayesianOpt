@@ -290,22 +290,26 @@ plt.xlabel('beta')
 plt.show()
 
 
-sns.heatmap(
+ax = sns.heatmap(
     np.mean(lu_pofs, axis=2),
     xticklabels=BETAS, yticklabels=ALPHAS,
     cmap='Reds', vmin=1
 )
+ax.invert_yaxis()
 plt.ylabel('alpha')
 plt.xlabel('beta')
+
+# plt.show()
 
 tikzplotlib.save('pof_lu_heatmap.tex')
 
 
-sns.heatmap(
+ax = sns.heatmap(
     np.mean(ln_pofs, axis=2),
     xticklabels=BETAS, yticklabels=ALPHAS,
     cmap='Reds', vmin=1
 )
+ax.invert_yaxis()
 plt.ylabel('alpha')
 plt.xlabel('beta')
 
@@ -377,6 +381,17 @@ cs = sns.heatmap(
 ax[0].set_ylabel('Alpha')
 ax[0].set_xlabel('Beta')
 ax[1].set_xlabel('Beta');
+
+
+sns.heatmap(
+    np.mean(lu_pofs, axis=2),
+    xticklabels=BETAS, yticklabels=ALPHAS,
+    cmap='Reds', vmin=1
+)
+plt.ylabel('alpha')
+plt.xlabel('beta')
+
+tikzplotlib.save('pof_lu_heatmap_new.tex', externalize_tables=True)
 
 
 

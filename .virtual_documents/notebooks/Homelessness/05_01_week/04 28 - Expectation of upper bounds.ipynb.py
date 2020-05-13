@@ -131,7 +131,9 @@ ax[-1].legend()
 ax[0].set_ylabel('Price of fairness bound\n')
 ax[1].set_xlabel('\nNumber of agents')
     
-plt.show()
+# plt.show()
+
+tikzplotlib.save('upper_bound_growth.tex')
 
 
 pof_u = [[[] for _ in NS] for __ in distrs]
@@ -304,7 +306,9 @@ ax[-1].legend()
 ax[0].set_ylabel('Empirical price of fairness\n')
 ax[1].set_xlabel('\nNumber of agents')
     
-plt.show()
+# plt.show()
+
+tikzplotlib.save('avg_pof_not_sorted.tex')
 
 
 pof_lu_df = pd.DataFrame(columns=['PoF', 'N', 'Sorted rows'])
