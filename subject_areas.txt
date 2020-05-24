@@ -1,0 +1,102 @@
+Algorithms			Neuroscience and Cognitive Science
+  Active Learning			Auditory Perception
+  Adaptive Data Analysis			Brain Imaging
+  Adversarial Learning			Brain Mapping
+  AutoML			Brain Segmentation
+  Bandit Algorithms			Brain-Computer Interfaces and Neural Prostheses
+  Boosting and Ensemble Methods			Cognitive Science
+  Classification			Connectomics
+  Clustering			Human or Animal Learning
+  Collaborative Filtering			Language for Cognitive Science
+  Communication- or Memory-Bounded Learning			Memory
+  Components Analysis (e.g., CCA, ICA, LDA, PCA)			Neural Coding
+  Continual Learning			Neuropsychology
+  Data Compression			Neuroscience
+  Density Estimation			Perception
+  Dynamical Systems			Plasticity and Adaptation
+  Few-Shot Learning			Problem Solving
+  Kernel Methods			Reasoning
+  Large Margin Methods			Spike Train Generation
+  Large Scale Learning			Synaptic Modulation
+  Meta-Learning			Visual Perception
+  Metric Learning			Optimization
+  Missing Data			Convex Optimization
+  Model Selection and Structure Learning			Discrete Optimization
+  Multimodal Learning			Evolutionary Computation
+  Multitask and Transfer Learning			Non-Convex Optimization
+  Nonlinear Dimensionality Reduction and Manifold Learning			Stochastic Optimization
+  Online Learning			Submodular Optimization
+  Program Induction			Probabilistic Methods
+  Ranking and Preference Learning			Bayesian Nonparametrics
+  Regression			Bayesian Theory
+  Relational Learning			Belief Propagation
+  Representation Learning			Causal Inference
+  Semi-Supervised Learning			Distributed Inference
+  Similarity and Distance Learning			Gaussian Processes
+  Sparse Coding and Dimensionality Expansion			Graphical Models
+  Sparsity and Compressed Sensing			Hierarchical Models
+  Spectral Methods			Latent Variable Models
+  Stochastic Methods			MCMC
+  Structured Prediction			Probabilistic Programming
+  Uncertainty Estimation			Topic Models
+  Unsupervised Learning			Variational Inference
+  Applications			Reinforcement Learning and Planning
+  Activity and Event Recognition			Decision and Control
+  Audio and Speech Processing			Exploration
+  Automated Reasoning and Formal Methods			Hierarchical RL
+  Body Pose, Face, and Gesture Analysis			Markov Decision Processes
+  Computational Biology and Bioinformatics			Model-Based RL
+  Computational Photography			Multi-Agent RL
+  Computational Social Science			Navigation
+  Computer Vision			Planning
+  Denoising			Reinforcement Learning
+  Dialog- or Communication-Based Learning			Social Aspects of Machine Learning
+  Game Playing			AI Safety
+  Hardware and Systems			Fairness, Accountability, and Transparency
+  Health			Privacy, Anonymity, and Security
+  Image Segmentation			Theory
+  Information Retrieval			Computational Learning Theory
+  Matrix and Tensor Factorization			Control Theory
+  Motor Control			Data-driven Algorithm Design
+  Music Modeling and Analysis			Frequentist Statistics
+  Natural Language Processing			Game Theory and Computational Economics
+  Network Analysis			Hardness of Learning and Approximations
+  Object Detection			High-Dimensional Inference
+  Object Recognition			Information Theory
+  Program Understanding and Generation			Large Deviations and Asymptotic Analysis
+  Quantitative Finance and Econometrics			Models of Learning and Generalization
+  Quantum Learning			Regularization
+  Recommender Systems			Spaces of Functions and Kernels
+  Robotics			Statistical Learning Theory
+  Signal Processing			Statistical Physics of Learning
+  Speech Recognition
+  Sustainability
+  Time Series Analysis
+  Tracking and Motion in Video
+  Video Analysis
+  Visual Question Answering
+  Visual Scene Analysis and Interpretation
+  Web Applications and Internet Data
+  Data, Challenges, Implementations, and Software
+  Benchmarks
+  Data Sets or Data Repositories
+  Software Toolkits
+  Virtual Environments
+  Deep Learning
+  Adversarial Networks
+  Analysis and Understanding of Deep Networks
+  Attention Models
+  Biologically Plausible Deep Networks
+  CNN Architectures
+  Deep Autoencoders
+  Efficient Inference Methods
+  Efficient Training Methods
+  Embedding Approaches
+  Generative Models
+  Interaction-Based Deep Networks
+  Memory-Augmented Neural Networks
+  Optimization for Deep Networks
+  Predictive Models
+  Recurrent Networks
+  Supervised Deep Networks
+  Visualization or Exposition Techniques for Deep Networks

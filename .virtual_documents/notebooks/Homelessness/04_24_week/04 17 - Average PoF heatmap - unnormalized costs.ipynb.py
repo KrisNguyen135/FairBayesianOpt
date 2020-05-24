@@ -394,4 +394,67 @@ plt.xlabel('beta')
 tikzplotlib.save('pof_lu_heatmap_new.tex', externalize_tables=True)
 
 
+# lu_costs
+# ln_costs
+eff_costs.shape
+
+
+np.percentile(lu_costs[:, 0, :], [0.25, 0.75], axis=1)
+
+
+pcnts = np.percentile(lu_costs[:, 0, :], [0.95, 0.05], axis=1)
+means = np.mean(lu_costs[:, 0, :], axis=1)
+errors = pcnts - means
+errors[0] *= -1
+
+plt.errorbar(
+    ALPHAS, means, yerr=errors,
+    capsize=5, capthick=3, marker='^', markersize=10
+);
+
+
+plt.plot(
+    ALPHAS, np.mean(lu_costs[:, 0, :], axis=1),
+    label=r'$C(L_u)$', marker='^'
+)
+plt.plot(
+    ALPHAS, np.mean(ln_costs[:, 0, :], axis=1),
+    label=r'$C(L_n)$', marker='^'
+)
+plt.plot(
+    ALPHAS, np.mean(eff_costs[:, 0, :], axis=1),
+    label=r'$C(E)$', marker='^'
+)
+
+plt.xscale('log')
+plt.xticks(ALPHAS, labels=ALPHAS)
+
+plt.legend();
+
+
+fig, ax = plt.subplots(5, 2, figsize=(20, 40), sharex=True)
+
+for b_id, b in enumerate(BETAS):
+    ax[b_id // 2][b_id % 2].plot(
+        ALPHAS, np.mean(lu_costs[:, b_id, :], axis=1),
+        label=r'$C(L_u)$', marker='^'
+    )
+    ax[b_id // 2][b_id % 2].plot(
+        ALPHAS, np.mean(ln_costs[:, b_id, :], axis=1),
+        label=r'$C(L_n)$', marker='^'
+    )
+    ax[b_id // 2][b_id % 2].plot(
+        ALPHAS, np.mean(eff_costs[:, b_id, :], axis=1),
+        label=r'$C(E)$', marker='^'
+    )
+    
+    ax[b_id // 2][b_id % 2].set_xticks(ALPHAS)
+    ax[b_id // 2][b_id % 2].set_xticklabels(ALPHAS)
+    
+    ax[b_id // 2][b_id % 2].set_title(r'$\beta = $' + str(b))
+    ax[b_id // 2][b_id % 2].legend()
+    
+plt.xscale('log');
+
+
 
