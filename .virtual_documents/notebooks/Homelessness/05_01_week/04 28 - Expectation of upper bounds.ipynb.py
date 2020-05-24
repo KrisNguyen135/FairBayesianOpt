@@ -704,12 +704,74 @@ np.save('lu_sorted_costs', lu_sorted_costs)
 np.save('eff_sorted_costs', eff_sorted_costs)
 
 
-# lu_costs = np.load('lu_costs.npy')
-# eff_costs = np.load('eff_costs.npy')
-# lu_sorted_costs = np.load('lu_sorted_costs.npy')
-# eff_sorted_costs = np.load('eff_sorted_costs.npy')
+lu_costs = np.load('lu_costs.npy')
+eff_costs = np.load('eff_costs.npy')
+lu_sorted_costs = np.load('lu_sorted_costs.npy')
+eff_sorted_costs = np.load('eff_sorted_costs.npy')
 
-np.load('lu_costs.npy').shape, np.load('eff_costs.npy').shape, np.load('lu_sorted_costs.npy').shape, np.load('eff_sorted_costs.npy').shape
+lu_costs.shape
+
+
+pofs = lu_costs / eff_costs
+sorted_pofs = lu_sorted_costs / eff_sorted_costs
+
+filter_ids = sorted_pofs < pofs
+
+
+fig, ax = plt.subplots(2, 1, figsize=(15, 15), sharex=True, sharey=True)
+
+# ax[0].hist(sorted_pofs[filter_ids], alpha=0.4, label='Sorted')
+# ax[0].hist(pofs[filter_ids], alpha=0.4, label='Not sorted')
+# ax[0].legend()
+# ax[0].set_ylabel('PoF distribution\nwhen "Sorted" < "Not sorted"')
+
+
+# ax[0].hist(eff_sorted_costs[filter_ids], alpha=0.4, label='Sorted')
+# ax[0].hist(eff_costs[filter_ids], alpha=0.4, label='Not sorted')
+# ax[0].hist(eff_sorted_costs[filter_ids] - eff_costs[filter_ids], alpha=0.4, label='Cost increase when sorted')
+
+sns.kdeplot(eff_sorted_costs[filter_ids], label='Sorted', ax=ax[0])
+sns.kdeplot(eff_costs[filter_ids], label='Not sorted', ax=ax[0])
+sns.kdeplot(eff_sorted_costs[filter_ids] - eff_costs[filter_ids], label='Cost increase when sorted', ax=ax[0])
+
+ax[0].legend()
+ax[0].set_ylabel('C(E) distribution\nwhen "Sorted" < "Not sorted"')
+
+
+# ax[1].hist(lu_sorted_costs[filter_ids], alpha=0.4, label='Sorted')
+# ax[1].hist(lu_costs[filter_ids], alpha=0.4, label='Not sorted')
+# ax[1].hist(lu_sorted_costs[filter_ids] - lu_costs[filter_ids], alpha=0.4, label='Cost increase when sorted')
+
+sns.kdeplot(lu_sorted_costs[filter_ids], label='Sorted', ax=ax[1])
+sns.kdeplot(lu_costs[filter_ids], label='Not sorted', ax=ax[1])
+sns.kdeplot(lu_sorted_costs[filter_ids] - lu_costs[filter_ids], label='Cost increase when sorted', ax=ax[1])
+
+ax[1].legend()
+ax[1].set_ylabel('C(L_u) distribution\nwhen "Sorted" < "Not sorted"');
+
+
+fig, ax = plt.subplots(2, 1, figsize=(20, 15))
+
+eff_cost_increases = eff_sorted_costs[filter_ids] - eff_costs[filter_ids]
+lu_cost_increases = lu_sorted_costs[filter_ids] - lu_costs[filter_ids]
+
+cost_increase_ratios = eff_cost_increases / lu_cost_increases
+cost_ratios = eff_costs[filter_ids] / lu_costs[filter_ids]
+
+
+ax[0].hist(eff_cost_increases, color='b', alpha=0.4, label='C(E)', density=True)
+sns.kdeplot(eff_cost_increases, c='b', ax=ax[0])
+
+ax[0].hist(lu_cost_increases, color='r', alpha=0.4, label='C(L_u)', density=True)
+sns.kdeplot(lu_cost_increases, c='r', ax=ax[0])
+
+ax[0].legend()
+ax[0].set_ylabel('Cost increase\n"Not sorted" -> "Sorted"')
+
+
+ax[1].hist(cost_increase_ratios - cost_ratios, alpha=0.4, color='b', density=True)
+sns.kdeplot(cost_increase_ratios - cost_ratios, c='b')
+ax[1].set_ylabel('Cost increase ratio - Cost ratio');
 
 
 
