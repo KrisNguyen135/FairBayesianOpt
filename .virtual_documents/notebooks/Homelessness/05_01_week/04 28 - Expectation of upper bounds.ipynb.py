@@ -344,41 +344,6 @@ pof_lu_df = pd.read_csv('pof_lu_df_new.csv')
 pof_lu_df
 
 
-hatches = ['x', '\\\\'] * len(NS)
-colors = [
-    (0.19460784313725488, 0.45343137254901944, 0.632843137254902, 1),
-    (0.8818627450980391, 0.5053921568627451, 0.17303921568627467, 1)
-] * len(NS)
-
-ax = sns.boxplot(x='N', y='PoF', hue='Sorted rows', data=pof_lu_df)
-# for box, hatch, color in zip(ax.artists, hatches, colors):
-#     box.set_hatch(hatch)
-#     box.set_facecolor('w')
-#     box.set_edgecolor(color)
-
-for i, artist in enumerate(ax.artists):
-    artist.set_hatch(hatches[i])
-    artist.set_facecolor('w')
-    artist.set_edgecolor(colors[i])
-    
-    for j in range(i * 6, i * 6 + 6):
-        ax.lines[j].set_color(colors[i])
-        ax.lines[j].set_mfc(colors[i])
-        ax.lines[j].set_mec(colors[i])
-
-my_patches = [
-    # mpatches.Patch(facecolor=colors[0], hatch=hatches[0], label='False'),
-    # mpatches.Patch(facecolor=colors[1], hatch=hatches[1], label='True')
-    mpatches.Patch(facecolor='w', edgecolor=colors[0], hatch=hatches[0], label='False'),
-    mpatches.Patch(facecolor='w', edgecolor=colors[1], hatch=hatches[1], label='True')
-]
-
-ax.legend(handles=my_patches, title='Sorted rows')
-    
-plt.ylabel('Price of fairness of $L_u$')
-plt.show()
-
-
 plt.figure(figsize=(20, 7))
 
 colors = ['w', 'silver'] * len(NS)
@@ -485,6 +450,15 @@ tikzplotlib.save(
     axis_height='7cm',
     axis_width='20cm',
 )
+
+
+sns.kdeplot(pof_lu_df['PoF'], label='PoF(L)')
+sns.kdeplot(pof_ln_df['PoF'], label='PoF(LoINC)')
+plt.legend();
+
+
+sns.kdeplot(pof_lu_diff_df['PoF diff'], label='Difference in PoF')
+plt.legend();
 
 
 i = 0
@@ -716,6 +690,9 @@ pofs = lu_costs / eff_costs
 sorted_pofs = lu_sorted_costs / eff_sorted_costs
 
 filter_ids = sorted_pofs < pofs
+
+
+sns.kdeplot()
 
 
 fig, ax = plt.subplots(2, 1, figsize=(15, 15), sharex=True, sharey=True)
