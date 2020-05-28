@@ -452,13 +452,17 @@ tikzplotlib.save(
 )
 
 
-sns.kdeplot(pof_lu_df['PoF'], label='PoF(L)')
-sns.kdeplot(pof_ln_df['PoF'], label='PoF(LoINC)')
-plt.legend();
+sns.kdeplot(pof_lu_df[~pof_lu_df['Sorted rows']]['PoF'], label='Not sorted')
+sns.kdeplot(pof_lu_df[pof_lu_df['Sorted rows']]['PoF'], label='Sorted')
+plt.legend()
+
+tikzplotlib.save('pof_lu_sorted_vs_not_sorted_all.tex')
 
 
 sns.kdeplot(pof_lu_diff_df['PoF diff'], label='Difference in PoF')
-plt.legend();
+plt.legend()
+
+tikzplotlib.save('pof_lu_sorted_vs_not_sorted_diff.tex')
 
 
 i = 0
