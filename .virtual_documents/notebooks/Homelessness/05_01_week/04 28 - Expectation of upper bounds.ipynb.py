@@ -5,11 +5,6 @@ from scipy.optimize import linear_sum_assignment
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-# plt.style.use('seaborn-darkgrid')
-# plt.rcParams['font.family'] = 'Times New Roman'
-plt.rcParams['figure.figsize'] = 20, 13
-plt.rcParams['font.size'] = 20
-plt.rcParams['lines.linewidth'] = 2
 import seaborn as sns
 import tikzplotlib
 
@@ -428,6 +423,31 @@ for label in labels:
 pof_lu_diff_df
 
 
+pof_ln_diff_df = pd.DataFrame(
+    columns=['PoF diff', 'N', 'Distr']
+)
+
+for label in labels:
+    for n in NS:
+        filtered_df = pof_ln_df[
+            (pof_ln_df['Distr'] == label)
+            & (pof_ln_df['N'] == n)
+        ]
+        
+        not_sorted_pof_ln = filtered_df[~ filtered_df['Sorted rows']]
+        sorted_pof_ln = filtered_df[filtered_df['Sorted rows']]
+        
+        pof_ln_diff_df = pd.concat([
+            pof_ln_diff_df,
+            pd.DataFrame({
+                'PoF diff': sorted_pof_ln['PoF'].to_numpy() - not_sorted_pof_ln['PoF'].to_numpy(),
+                'N': n, 'Distr': label
+            })
+        ])
+        
+pof_ln_diff_df
+
+
 plt.figure(figsize=(20, 7))
 
 ax = sns.boxplot(x='N', y='PoF diff', data=pof_lu_diff_df, width=0.5)
@@ -454,15 +474,20 @@ tikzplotlib.save(
 
 sns.kdeplot(pof_lu_df[~pof_lu_df['Sorted rows']]['PoF'], label='Not sorted')
 sns.kdeplot(pof_lu_df[pof_lu_df['Sorted rows']]['PoF'], label='Sorted')
-plt.legend()
-
-tikzplotlib.save('pof_lu_sorted_vs_not_sorted_all.tex')
+plt.legend();
 
 
 sns.kdeplot(pof_lu_diff_df['PoF diff'], label='Difference in PoF')
-plt.legend()
+plt.legend();
 
-tikzplotlib.save('pof_lu_sorted_vs_not_sorted_diff.tex')
+
+sns.kdeplot(pof_ln_df[~pof_ln_df['Sorted rows']]['PoF'], label='Not sorted')
+sns.kdeplot(pof_ln_df[pof_ln_df['Sorted rows']]['PoF'], label='Sorted')
+plt.legend();
+
+
+sns.kdeplot(pof_ln_diff_df['PoF diff'], label='Difference in PoF')
+plt.legend();
 
 
 i = 0
