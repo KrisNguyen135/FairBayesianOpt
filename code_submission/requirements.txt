@@ -1,6 +1,6 @@
 jupyter==1.0.0
 matplotlib==3.1.2
-numpy==1.18.1
+numpy==1.22.0
 pandas==0.25.3
 PuLP==2.0
 scikit-learn==0.22.1
